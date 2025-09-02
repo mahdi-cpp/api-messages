@@ -7,17 +7,17 @@ import (
 	"github.com/mahdi-cpp/iris-tools/image_loader"
 )
 
-type MainStorageManager struct {
+type Manager struct {
 	mu         sync.RWMutex
 	chats      map[string]*ChatManager // Maps chatIDs to their ChatManager
 	iconLoader *image_loader.ImageLoader
 	ctx        context.Context
 }
 
-func NewMainStorageManager() (*MainStorageManager, error) {
+func NewApplicationManager() (*Manager, error) {
 
 	// Handler the manager
-	manager := &MainStorageManager{
+	manager := &Manager{
 		chats: make(map[string]*ChatManager),
 		ctx:   context.Background(),
 	}

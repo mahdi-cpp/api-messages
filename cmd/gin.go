@@ -1,7 +1,8 @@
-package cmd
+package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,19 +11,28 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-var port = 8082
-var router = gin.Default()
+var port = 50151
 
-func initGin() {
+// Declare 'router' at the package level, making it a global variable
+var router *gin.Engine
 
-	// Set Gin mode
+func ginInit() {
 	gin.SetMode(gin.DebugMode)
+	router = gin.Default() // Initialize the Gin engine with default middleware
 
-	// Handler router with default middleware
-	//router = gin.Default()
+	// Configure CORS middleware
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://192.168.1.114:3000"}, // Allow your Svelte app's origin
+		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "userid"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 }
 
 func startServer(router *gin.Engine) {
@@ -36,7 +46,7 @@ func startServer(router *gin.Engine) {
 	// Run server in a goroutine
 	go func() {
 		log.Printf("Server starting on %s", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Server failed: %v", err)
 		}
 	}()
